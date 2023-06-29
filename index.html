@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Type Ahead 👀</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="https://fav.farm/🔥" />
+  </head>
+  <body>
+    <form class="search-form">
+      <input type="text" class="search" placeholder="จังหวัด / City" />
+      <ul class="suggestions">
+        <li>Filter for a city</li>
+        <li>ค้นหาจังหวัด</li>
+      </ul>
+    </form>
+    <script>
+      const endpoint =
+        "https://raw.githubusercontent.com/kongvut/thai-province-data/master/json/thai_provinces.json";
+      const records = [];
+      fetch(endpoint)
+        .then((blob) => blob.json())
+        .then((data) => {
+          const keyWithQuotation = "RECORDS";
+          const objectWithQuotedKey = data;
+          const objectWithUnquotedKey = {
+            [keyWithQuotation.replace(/['"]/g, "")]:
+              objectWithQuotedKey[keyWithQuotation],
+          };
+          const record = objectWithUnquotedKey.RECORDS;
+          records.push(...record);
+        });
+      function findMatches(wordToMatch, records) {
+        console.log(wordToMatch);
+        return records.filter((place) => {
+          const regex = new RegExp(wordToMatch, "gi");
+          return place.name_en.match(regex) || place.name_th.match(regex);
+        });
+      }
+
+      const searchInput = document.querySelector(".search");
+      const suggestions = document.querySelector(".suggestions");
+
+      searchInput.addEventListener("change", displayMatches);
+      searchInput.addEventListener("keyup", displayMatches);
+
+      function displayMatches() {
+        const matchArray = findMatches(this.value, records);
+        const html = matchArray
+          .map((place) => {
+            const regex = new RegExp(this.value, "gi");
+            const nameInThai = place.name_th.replace(
+              regex,
+              `<span class="hl">${this.value}</span>`
+            );
+            const nameInEng = place.name_en.replace(
+              regex,
+              `<span class="hl">${this.value}</span>`
+            );
+            return `
+                <li>
+                  <span class="name">${nameInThai}, ${nameInEng}</span>
+                </li>
+                `;
+          })
+          .join("");
+        suggestions.innerHTML = html;
+      }
+    </script>
+  </body>
+</html>
